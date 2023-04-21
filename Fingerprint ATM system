@@ -1,0 +1,209 @@
+
+import java.util.Scanner;
+
+public class BiometricAuthentication {
+    
+    // Method to capture and return the user's fingerprint image
+    public byte[] captureFingerprintImage() {
+        // Code to capture fingerprint image from a fingerprint scanner device
+        // and convert it to a byte array
+        byte[] fingerprintImage = null;
+        // ...
+        return fingerprintImage;
+    }
+    
+    // Method to compare the captured fingerprint image with the user's stored fingerprint data
+    public boolean compareFingerprint(byte[] fingerprintImage, byte[] storedFingerprintData) {
+        // Code to compare the captured fingerprint image with the user's stored fingerprint data
+        // using a fingerprint matching algorithm
+        boolean isMatched = false;
+        // ...
+        return isMatched;
+    }
+    
+    // Method to authenticate the user using fingerprint
+    public boolean authenticateUser() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Place your finger on the scanner: ");
+        byte[] fingerprintImage = captureFingerprintImage();
+        // Code to retrieve the user's stored fingerprint data from the database
+        byte[] storedFingerprintData = null;
+        // ...
+        boolean isMatched = compareFingerprint(fingerprintImage, storedFingerprintData);
+        if (isMatched) {
+            System.out.println("Authentication successful!");
+            return true;
+        } else {
+            System.out.println("Authentication failed. Please try again.");
+            return false;
+        }
+    }
+    
+    // Test method to run the biometric authentication module
+    public static void main(String[] args) {
+        BiometricAuthentication biometricAuth = new BiometricAuthentication();
+        boolean isAuthenticated = biometricAuth.authenticateUser();
+        if (isAuthenticated) {
+            // Code to perform ATM transactions
+            // ...
+        }
+    }
+}
+
+import java.sql.*;
+
+public class DatabaseManager {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/atm_database";
+    private static final String USER = "root";
+    private static final String PASSWORD = "password";
+
+    private Connection connection;
+
+    public DatabaseManager() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            connection = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+            System.out.println("Connected to database");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void addUser(String name, String fingerprintData) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (name, fingerprint_data) VALUES (?, ?)");
+            statement.setString(1, name);
+            statement.setString(2, fingerprintData);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean authenticateUser(String name, String fingerprintData) {
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT fingerprint_data FROM users WHERE name = ?");
+            statement.setString(1, name);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String storedFingerprintData = resultSet.getString("fingerprint_data");
+                return storedFingerprintData.equals(fingerprintData);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void close() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class TransactionAuthorization {
+    
+    public boolean authorizeTransaction(User user, int amount) {
+        // check if user is authorized to perform transaction
+        if (user.isAuthorized()) {
+            // check if user has sufficient funds
+            if (user.getAccountBalance() >= amount) {
+                // update user's account balance
+                user.setAccountBalance(user.getAccountBalance() - amount);
+                // log transaction
+                TransactionLog.logTransaction(user.getUserId(), "Withdrawal", amount);
+                return true;
+            } else {
+                System.out.println("Insufficient funds");
+            }
+        } else {
+            System.out.println("User not authorized to perform transactions");
+        }
+        return false;
+    }
+}
+
+public class ErrorHandlingModule {
+    
+    public void handleInsufficientFundsError() {
+        System.out.println("Error: Insufficient funds in account.");
+        // Additional code to handle this error
+    }
+    
+    public void handleTechnicalGlitchError() {
+        System.out.println("Error: Technical glitch encountered.");
+        // Additional code to handle this error
+    }
+    
+    // Other error handling methods can be added as needed
+    
+}
+
+public class CompatibilityModule {
+    private BankSoftware software;
+    private BankHardware hardware;
+
+    public CompatibilityModule(BankSoftware software, BankHardware hardware) {
+        this.software = software;
+        this.hardware = hardware;
+    }
+
+    public boolean isCompatible() {
+        return software.isCompatible() && hardware.isCompatible();
+    }
+}
+
+public class ATMSystemTest {
+    @Test
+    public void testFingerprintScanning() {
+        FingerprintScanner scanner = new FingerprintScanner();
+        byte[] fingerprint = scanner.scanFingerprint();
+        assertNotNull(fingerprint);
+    }
+
+    @Test
+    public void testFingerprintIdentification() {
+        FingerprintScanner scanner = new FingerprintScanner();
+        byte[] fingerprint = scanner.scanFingerprint();
+        UserDatabase userDatabase = new UserDatabase();
+        boolean isMatch = userDatabase.matchFingerprint(fingerprint, "john.doe@example.com");
+        assertTrue(isMatch);
+    }
+
+    @Test
+    public void testTransactionAuthorization() {
+        UserDatabase userDatabase = new UserDatabase();
+        boolean isAuthorized = userDatabase.isAuthorized("john.doe@example.com");
+        assertTrue(isAuthorized);
+    }
+
+    @Test
+    public void testTransactionLogging() {
+        TransactionLogger logger = new TransactionLogger();
+        logger.logTransaction("john.doe@example.com", 100.00, TransactionType.WITHDRAWAL);
+        List<Transaction> transactions = logger.getTransactions("john.doe@example.com");
+        assertEquals(1, transactions.size());
+    }
+
+    @Test
+    public void testErrorHandling() {
+        TransactionProcessor processor = new TransactionProcessor();
+        UserDatabase userDatabase = new UserDatabase();
+        double balance = userDatabase.getBalance("john.doe@example.com");
+        boolean isSuccessful = processor.withdraw("john.doe@example.com", balance + 10.00);
+        assertFalse(isSuccessful);
+    }
+
+    @Test
+    public void testCompatibility() {
+        BankSoftware software = new BankSoftware();
+        BankHardware hardware = new BankHardware();
+        CompatibilityModule compatibilityModule = new CompatibilityModule(software, hardware);
+        assertTrue(compatibilityModule.isCompatible());
+    }
+}
